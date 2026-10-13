@@ -1,0 +1,165 @@
+# Formal Schema: Project Specification Intake Data
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "ProjectSpec"
+description: "Formal schema defining the project specification intake fields, allowed values, defaults, and tiers."
+type: "object"
+required:
+  - "target_project_path"
+  - "project_name"
+  - "architecture"
+  - "framework"
+  - "database_engine"
+  - "data_access"
+  - "config_strategy"
+  - "auth"
+properties:
+  # Step 0
+  target_project_path:
+    type: "string"
+    description: "Absolute or relative target directory path where project code will be scaffolded."
+
+  project_name:
+    type: "string"
+    description: "Kebab-case project root name."
+    pattern: "^[a-z0-9-]+$"
+    default: "my-backend-app"
+
+  # Step 1
+  architecture:
+    type: "string"
+    description: "System architectural topology."
+    enum: ["microservices", "monolith", "modular-monolith"]
+    default: "microservices"
+    x-tiers:
+      microservices: 1
+      monolith: 1
+      modular-monolith: 2
+
+  # Step 2
+  framework:
+    type: "string"
+    description: "Node.js + TypeScript backend framework."
+    enum: ["express", "nestjs"]
+    default: "express"
+    x-tiers:
+      express: 1
+      nestjs: 1
+
+  # Step 3
+  database_engine:
+    type: "string"
+    description: "Primary database engine."
+    enum: ["mongodb", "postgres", "mysql", "mssql"]
+    default: "mongodb"
+    x-tiers:
+      mongodb: 1
+      postgres: 1
+      mysql: 2
+      mssql: 2
+
+  # Step 4
+  data_access:
+    type: "string"
+    description: "Data access / ORM / ODM library. Must match database_engine type."
+    enum: ["mongoose", "typeorm", "prisma", "drizzle"]
+    default: "mongoose"
+    x-tiers:
+      mongoose: 1
+      typeorm: 1
+      prisma: 2
+      drizzle: 2
+
+  # Step 5 (Microservices only)
+  db_strategy:
+    type: "string"
+    description: "Database isolation strategy. Required when architecture is microservices."
+    enum: ["db-per-service", "shared-db"]
+    default: "db-per-service"
+    x-tiers:
+      db-per-service: 1
+      shared-db: 1
+
+  # Step 6 (Microservices only)
+  services:
+    type: "array"
+    description: "List of initial services. Required when architecture is microservices."
+    items:
+      type: "object"
+      required: ["name", "responsibility", "own_db"]
+      properties:
+        name:
+          type: "string"
+          pattern: "^[a-z0-9-]+$"
+        responsibility:
+          type: "string"
+        own_db:
+          type: "boolean"
+          default: true
+        port:
+          type: "integer"
+          minimum: 1024
+          maximum: 65535
+
+  # Step 7 (Microservices only)
+  inter_service_comm:
+    type: "string"
+    description: "Inter-service communication protocol. Required when architecture is microservices."
+    enum: ["rest", "rabbitmq", "grpc"]
+    default: "rest"
+    x-tiers:
+      rest: 1
+      rabbitmq: 2
+      grpc: 3
+
+  # Step 8
+  shared_code_strategy:
+    type: "string"
+    description: "Shared common code organization strategy."
+    enum: ["shared-utils", "monolith-common-folder", "git-submodule", "published-private-packages", "none"]
+    default: "shared-utils"
+    x-tiers:
+      shared-utils: 1
+      monolith-common-folder: 1
+      git-submodule: 2
+      published-private-packages: 2
+      none: 3
+
+  # Step 9
+  config_strategy:
+    type: "string"
+    description: "Configuration and environment secret resolution mechanism."
+    enum: ["typed-config", "aws-secrets-manager", "vault"]
+    default: "typed-config"
+    x-tiers:
+      typed-config: 1
+      aws-secrets-manager: 2
+      vault: 3
+
+  # Step 10
+  auth:
+    type: "string"
+    description: "Authentication and authorization mechanism."
+    enum: ["jwt", "session", "none"]
+    default: "jwt"
+    x-tiers:
+      jwt: 1
+      session: 3
+      none: 3
+
+  # Quality baseline
+  quality:
+    type: "object"
+    description: "Quality baseline configuration."
+    properties:
+      lint_format:
+        type: "string"
+        enum: ["eslint-prettier"]
+        default: "eslint-prettier"
+      strict_typescript:
+        type: "boolean"
+        default: true
+
+  notes:
+    type: "string"
+    description: "Free-text notes, constraints, or domain-specific instructions."
+    default: ""

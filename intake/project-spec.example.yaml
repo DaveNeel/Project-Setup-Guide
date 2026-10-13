@@ -1,0 +1,33 @@
+# Realistic Example: Microservices Backend Project Specification
+target_project_path: "c:/Users/neel2/OneDrive/Desktop/Practise/user-platform"
+project_name: "user-platform"
+architecture: "microservices"
+framework: "express"
+database_engine: "mongodb"
+data_access: "mongoose"
+db_strategy: "db-per-service"
+
+services:
+  - name: "user-service"
+    responsibility: "User accounts, authentication identity, and profile management"
+    own_db: true
+    port: 3001
+  - name: "notification-service"
+    responsibility: "Notifications, template rendering, and email/SMS dispatch"
+    own_db: true
+    port: 3002
+  - name: "subscription-service"
+    responsibility: "Subscription plans, membership tiers, and billing lifecycle"
+    own_db: true
+    port: 3003
+
+inter_service_comm: "rest"
+shared_code_strategy: "shared-utils"
+config_strategy: "typed-config"
+auth: "jwt"
+
+quality:
+  lint_format: "eslint-prettier"
+  strict_typescript: true
+
+notes: "Uses shared-utils package with declarative registerRoutes and handleRequestWithResponse patterns."

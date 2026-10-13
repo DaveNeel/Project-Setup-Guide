@@ -1,0 +1,70 @@
+# ==============================================================================
+# PROJECT SPECIFICATION TEMPLATE
+# ==============================================================================
+
+# STEP 0: Target Project Directory Path
+# Specify where the new backend project should be scaffolded
+target_project_path: "../my-backend-app"
+
+# Project metadata
+project_name: "my-backend-app"
+
+# STEP 1: Architecture Topology
+# Options: microservices [T1] | monolith [T1] | modular-monolith [T2]
+architecture: "microservices"
+
+# STEP 2: Runtime, Language & Framework
+# Options: express [T1] | nestjs [T1]
+framework: "express"
+
+# STEP 3: Database Engine
+# Options: mongodb [T1] | postgres [T1] | mysql [T2] | mssql [T2]
+database_engine: "mongodb"
+
+# STEP 4: Data-Access Layer
+# Options for NoSQL: mongoose [T1]
+# Options for SQL: typeorm [T1] | prisma [T2] | drizzle [T2]
+data_access: "mongoose"
+
+# STEP 5: Database Strategy (Microservices Only)
+# Options: db-per-service [T1] | shared-db [T1]
+db_strategy: "db-per-service"
+
+# STEP 6: Service List & Boundaries (Microservices Only)
+services:
+  - name: "user-service"
+    responsibility: "User accounts, profile management, and authentication"
+    own_db: true
+    port: 3001
+  - name: "notification-service"
+    responsibility: "Email, SMS, and push notification dispatch"
+    own_db: true
+    port: 3002
+  - name: "subscription-service"
+    responsibility: "Subscription tiers, membership, and billing lifecycle"
+    own_db: true
+    port: 3003
+
+# STEP 7: Inter-Service Communication (Microservices Only)
+# Options: rest [T1] | rabbitmq [T2] | grpc [T3 - Not Supported]
+inter_service_comm: "rest"
+
+# STEP 8: Shared Code Strategy
+# Options for Microservices: shared-utils [T1] | git-submodule [T2] | published-private-packages [T2]
+# Options for Monolith: monolith-common-folder [T1]
+shared_code_strategy: "shared-utils"
+
+# STEP 9: Config & Environment Variables
+# Options: typed-config [T1] | aws-secrets-manager [T2] | vault [T3 - Not Supported]
+config_strategy: "typed-config"
+
+# STEP 10: Authentication
+# Options: jwt [T1] | session [T3 - Not Supported] | none [T3 - Not Supported]
+auth: "jwt"
+
+# Quality baseline
+quality:
+  lint_format: "eslint-prettier"
+  strict_typescript: true
+
+notes: ""

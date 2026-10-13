@@ -1,0 +1,11 @@
+# Git exclusions for AI-Ready Project Standards repository
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+*.log
+
+# Generated target projects (isolated external generation folder)
+generated/
+output/
+target/
