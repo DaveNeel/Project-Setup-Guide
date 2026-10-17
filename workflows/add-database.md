@@ -29,12 +29,9 @@ Numbered procedure for adding a database engine, configuring connection lifecycl
 ---
 
 ## 5. Migration Pipeline Setup
-1. Create dedicated migration directory: `src/database/migrations/`.
-2. Configure standalone migration CLI configuration (`data-source.ts` for TypeORM, `drizzle.config.ts` for Drizzle, or `prisma/schema.prisma` for Prisma).
-3. Add migration scripts to `package.json`:
-   - `"migration:generate"`
-   - `"migration:run"`
-   - `"migration:revert"`
+1. Create dedicated migration directory: `src/database/migrations/` (Note: for `architecture: microservices` with `db_strategy: shared-db`, this directory, the runner, and scripts reside strictly inside `shared-utils`; individual microservices contain zero migration files or scripts).
+2. Configure standalone migration CLI configuration (`migration-data-source.ts` / `data-source.ts` for TypeORM, `drizzle.config.ts` for Drizzle, or `prisma/schema.prisma` for Prisma).
+3. Add migration scripts to `package.json` (`migrate:status`, `migrate:generate`, `migrate:run`, `migrate:revert`).
 4. Enforce `synchronize: false` in production configuration.
 
 ---

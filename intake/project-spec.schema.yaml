@@ -18,6 +18,14 @@ properties:
     type: "string"
     description: "Absolute or relative target directory path where project code will be scaffolded."
 
+  shared_utils_path:
+    type: "string"
+    description: "Absolute or relative directory path where shared-utils package is located (when architecture is microservices)."
+
+  shared_utils_repo_url:
+    type: "string"
+    description: "Optional Git repository URL or registry reference for shared-utils."
+
   project_name:
     type: "string"
     description: "Kebab-case project root name."

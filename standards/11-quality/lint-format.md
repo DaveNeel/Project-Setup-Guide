@@ -31,6 +31,8 @@ All `tsconfig.json` files MUST configure:
 - `"noUnusedParameters": true`
 - `"exactOptionalPropertyTypes": true`
 - `"skipLibCheck": true`
+- `"sourceMap": false` (prohibits generation of `.js.map` files)
+- `"declarationMap": false` (prohibits generation of `.d.ts.map` files in `shared-utils`)
 
 ### Linting & Formatting Contract
 - Linting MUST use ESLint flat config (`eslint.config.mjs`) with `@typescript-eslint/parser` and `@typescript-eslint/eslint-plugin`.

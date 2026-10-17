@@ -5,6 +5,38 @@ All notable changes to the AI-Ready Project Standards repository are documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-10-17
+
+### Changed & Refined
+- **Single Universal Entry Point (`AGENTS.md`)**:
+  - Consolidated all AI agent instructions into `AGENTS.md` as the unified standard for all tools (Claude, Gemini, Antigravity, Cursor, OpenAI, etc.).
+  - Removed redundant thin pointer files `CLAUDE.md` and `GEMINI.md`.
+- **Elimination of Machine-Specific Folder Paths**:
+  - Removed all hardcoded absolute local paths from documentation, markdown links, and example specifications.
+  - Converted all documentation cross-references to clean, portable repository-relative links.
+- **Microservices Shared-Utils & Git Repo Strategy**:
+  - Added Step 0B prompt and schema properties (`shared_utils_path` and `shared_utils_repo_url`) for microservices.
+  - Configured microservice `package.json` to link to `shared-utils` via relative local folder path (`"file:..."`) initially, with git repository metadata configured for seamless transition to git URL or private registry.
+- **Shared Database Architecture & Zero Secrets in `shared-utils`**:
+  - Centralized entity schemas, migrations, generic DB operations (`dbOperations.ts`), and parameterized connection factory `createDataSource(dbConfig)` in `shared-utils` when `shared-db` strategy is selected.
+  - Strictly banned `.env` and hardcoded database credentials in `shared-utils`; database secrets reside exclusively in each microservice's `.env`.
+- **Centralized Migration Suite in `shared-utils` (Approach 2 - In-Memory Parameter Injection)**:
+  - Centralized schema generation, migration status checking, migration runs, and rollback commands (`migrate:status`, `migrate:run`, `migrate:generate`, `migrate:revert`) exclusively inside `shared-utils`.
+  - Implemented dynamic in-memory parameter injection via `migration-runner.ts` and `migration-data-source.ts`, accepting CLI flags or environment variables with zero disk-based credential caching or temporary files.
+  - Completely prohibited `migrations/` directories and migration execution scripts in microservices for shared databases, ensuring schema synchronization and data integrity remain unified.
+- **Strict Architectural Layer Separation**:
+  - Router: Pure route definition (`RouteDefinition[]`) and route middleware (`validateData(schema)`).
+  - Controller: Pure HTTP dispatch adapter with zero domain business logic.
+  - Service: Pure business logic accepting and returning plain domain data, strictly prohibited from accessing Express `req` or `res` objects.
+- **Pure TypeScript in `shared-utils`**:
+  - Enforced pure `.ts` source distribution; prohibited `.d.ts.map` and `.js.map` generation by setting `"sourceMap": false` and `"declarationMap": false`.
+- **Independent Service Dependencies & Parent Orchestrator (No Hoisting)**:
+  - Eliminated hoisted npm workspaces to prevent cross-service dependency bleeding, phantom imports, and broken containerization.
+  - Mandated dedicated `node_modules/` folder and independent `package-lock.json` file inside every individual microservice.
+  - Structured parent repository `package.json` purely as an orchestration manifest (`install:all`, `build:all`, `start:all`, `clean:all`, `reinstall:all`) using `concurrently` and `rimraf`.
+- **Autonomous Post-Approval Execution**:
+  - Formulated continuous execution pipeline after user approval to eliminate redundant interactive confirmations during scaffolding, installation, build, lint, and audit.
+
 ## [0.3.0] - 2026-10-10
 
 ### Changed & Refined

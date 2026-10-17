@@ -23,8 +23,9 @@ Defines the mandatory structural baseline, endpoints, and cross-cutting componen
 
 ### Mandatory Directory & File Baseline
 Every microservice in `services/<service-name>/` MUST contain:
-1. **Manifest & TypeScript Config:**
-   - `package.json` with scripts: `"build"`, `"lint"`, and `"start:dev"`.
+1. **Manifest, Lockfile & Local Dependencies:**
+   - Dedicated `package.json` with scripts: `"build"`, `"lint"`, and `"start:dev"`.
+   - Dedicated `package-lock.json` and local `node_modules/` directory (independent dependencies without shared hoisting).
    - `tsconfig.json` extending root compiler options.
 2. **Environment Template:**
    - `.env.example` documenting all required variables with placeholder values.
@@ -38,6 +39,8 @@ Every microservice in `services/<service-name>/` MUST contain:
    - Endpoint mounted at `GET /health` performing active database connectivity verification, conforming to `standards/cross-cutting/health-checks.md`.
 7. **Pure Source Code Baseline:**
    - Pure runnable source code under `src/`. `test/` folders are omitted from the initial setup.
+8. **Zero Migrations in Shared-Database Strategy:**
+   - When `db_strategy: shared-db` is selected, microservices MUST NOT contain `migrations/` directories or migration CLI scripts in `package.json`. All schema synchronization, generation, status checks, runs, and rollbacks are managed exclusively at the `shared-utils` level.
 
 ---
 
@@ -46,6 +49,8 @@ Every microservice in `services/<service-name>/` MUST contain:
 ```
 services/order-service/
 ├── package.json
+├── package-lock.json
+├── node_modules/
 ├── tsconfig.json
 ├── .env.example
 └── src/
@@ -60,6 +65,7 @@ services/order-service/
 
 ## 6. Agent Output Checklist
 - [ ] Every service directory contains `.env.example`, `package.json`, and `tsconfig.json`.
+- [ ] Services contain zero migration directories or migration scripts when `shared-db` is selected.
 - [ ] Single health check endpoint `GET /health` exists and verifies active database connectivity.
 - [ ] Structured logger and error envelope handlers are wired into bootstrap.
 - [ ] Pure `src/` source code baseline without `test/` folders.

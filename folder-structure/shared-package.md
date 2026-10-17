@@ -4,8 +4,8 @@ Literal file and directory blueprint for the shared library package (`packages/s
 
 ```
 packages/shared-utils/
-├── package.json                                 # Standalone manifest ("name": "shared-utils")
-├── tsconfig.json                                # TSConfig extending root tsconfig.base.json
+├── package.json                                 # Standalone manifest ("name": "shared-utils", git repo metadata)
+├── tsconfig.json                                # TSConfig (sourceMap: false, declarationMap: false)
 └── src/
     ├── index.ts                                 # Public export barrel
     ├── enums/                                   # Universal system enums (No static strings)
@@ -32,6 +32,17 @@ packages/shared-utils/
     │   ├── correlation-id.middleware.ts         # Correlation ID middleware with 1-line comment
     │   ├── error-handler.middleware.ts          # Central error handler with 1-line comment
     │   └── auth.middleware.ts                   # createAuthMiddleware with 1-line comment
+    ├── interfaces/
+    │   └── db.interface.ts                      # DBConfig / MSSQLConfig parameter interface
+    ├── database/                                # Shared Database (when shared-db is selected)
+    │   ├── entities/                            # All microservice shared DB entities
+    │   │   ├── index.ts
+    │   │   └── *.entity.ts
+    │   ├── migrations/                          # Shared TypeORM migrations
+    │   ├── migration-runner.ts                  # In-memory migration CLI runner (status, run, generate, revert)
+    │   ├── migration-data-source.ts             # In-memory DataSource for migration runner
+    │   ├── data-source.ts                       # createDataSource(dbConfig) runtime connection factory
+    │   └── dbOperations.ts                      # Common DB CRUD & transaction helper utilities
     ├── logger/
     │   └── logger.ts                            # Structured Pino JSON logger factory
     └── utils/

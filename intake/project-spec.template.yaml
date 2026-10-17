@@ -2,9 +2,13 @@
 # PROJECT SPECIFICATION TEMPLATE
 # ==============================================================================
 
-# STEP 0: Target Project Directory Path
+# STEP 0: Target Project Directory Path & Shared Utils Path
 # Specify where the new backend project should be scaffolded
 target_project_path: "../my-backend-app"
+
+# Specify where the shared-utils package should be located (for microservices)
+shared_utils_path: "../my-backend-app/packages/shared-utils"
+shared_utils_repo_url: "" # Optional Git repo URL for remote packaging
 
 # Project metadata
 project_name: "my-backend-app"

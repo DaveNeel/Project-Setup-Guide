@@ -1,5 +1,5 @@
 # Realistic Example: Microservices Backend Project Specification
-target_project_path: "c:/Users/neel2/OneDrive/Desktop/Practise/user-platform"
+target_project_path: "../user-platform"
 project_name: "user-platform"
 architecture: "microservices"
 framework: "express"
@@ -23,6 +23,8 @@ services:
 
 inter_service_comm: "rest"
 shared_code_strategy: "shared-utils"
+shared_utils_path: "../shared-utils"
+shared_utils_repo_url: "https://github.com/my-org/shared-utils.git"
 config_strategy: "typed-config"
 auth: "jwt"
 

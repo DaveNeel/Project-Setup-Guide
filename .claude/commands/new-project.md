@@ -12,4 +12,4 @@ When this command is triggered:
 3. Restrict options dynamically based on preceding answers using `intake/decision-tree.md`.
 4. Halt with the `[NOT YET SUPPORTED]` banner if a Tier 3 choice is requested.
 5. Output the populated `project-spec.yaml` and wait for human confirmation.
-6. Generate the generation plan with `shared-utils`, declarative routes, functional controllers, `validateData(schema)` route middleware, `APIResponseEntity<T>`, and no test folders, wait for approval, and execute [new-project.md](file:///c:/Users/neel2/OneDrive/Desktop/Practise/project-setup/workflows/new-project.md).
+6. Generate the generation plan with `shared-utils`, declarative routes, functional controllers, `validateData(schema)` route middleware, `APIResponseEntity<T>`, and no test folders, wait for approval, and execute [new-project.md](../../workflows/new-project.md).

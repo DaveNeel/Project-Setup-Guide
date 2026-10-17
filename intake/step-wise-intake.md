@@ -5,22 +5,37 @@ This document is the exact protocol the AI agent MUST follow when interviewing a
 ---
 
 ## Agent Execution Rules
-1. **Target Directory First:** Always prompt for the target project folder path before asking architecture questions.
+1. **Target Directory & Shared Utils Path First:** Always prompt for the target project folder path. If microservices architecture is selected, also prompt for the `shared-utils` folder path before proceeding.
 2. **Ask One Step at a Time:** Do not barrage the user with all questions simultaneously.
 3. **Dynamic Filtering:** Present ONLY the options valid based on prior answers.
 4. **Enforce Support Tiers:** Clearly label options with their Tier (`[Tier 1]`, `[Tier 2]`, `[Tier 3]`).
 5. **No Test Folders in Baseline:** The generated project focuses purely on runnable source code (`src/`). Tests are not scaffolded in the baseline setup.
 6. **Strict Enum-First Discipline:** The system replaces all magic strings and static response text with typed enums.
-7. **Route-Level Zod Validation:** Zod schemas are defined in module DTOs and validated strictly in route middleware via `validateData(schema)`. Services contain zero `.safeParse()` calls.
-8. **Canonical API Response Entity:** All endpoints return `{ status: boolean, statusCode: number, message: string, data: T }` conforming to `APIResponseEntity<T>`.
-9. **Confirmation Step:** Compile responses into `project-spec.yaml` and require human confirmation before drafting the generation plan.
+7. **Strict Separation of Router, Controller, and Service:**
+   - **Router:** Declares route endpoints as `RouteDefinition[]` with route-level middleware `validateData(schema)` and registers them via `registerRoutes(router, routes)`.
+   - **Controller:** Pure HTTP dispatch adapter. Extracts typed payload/params from `req`, calls domain service methods, envelopes service results via `createSuccessResponse`, and handles responses via `handleRequestWithResponse`. Controllers MUST NOT contain business logic.
+   - **Service:** Contains pure business logic. Receives plain TypeScript data/DTOs and returns domain models. Services MUST NOT receive Express `req` or `res` objects, nor invoke `.safeParse()`.
+8. **Shared Database & Centralized Migrations in `shared-utils`:** If microservices and a single shared database (`shared-db`) are chosen:
+   - Database schemas, ORM entities, migrations, and the migration runner (`migration-runner.ts` supporting `migrate:status`, `migrate:run`, `migrate:generate`, `migrate:revert`) MUST reside and execute centrally inside `shared-utils`.
+   - Microservices are STRICTLY PROHIBITED from defining migrations, executing migrations at boot, or containing migration CLI scripts in their local `package.json`.
+   - The migration runner in `shared-utils` MUST support in-memory environment variable / CLI parameter injection (`DB_HOST`, `DB_PORT`, etc.) without writing temporary plaintext credential files (`temp-data-source.ts`) to disk.
+   - `shared-utils` MUST NOT contain `.env` files, config loaders, or hardcoded database credentials on disk.
+   - Database secrets MUST reside in each microservice's `.env` and be passed as typed parameters into the connection factory (`createDataSource(dbConfig)`).
+9. **Pure TypeScript in `shared-utils` (No Map Files):** `shared-utils` MUST contain only clean `.ts` source files. Compilation map files like `.d.ts.map` and `.js.map` are strictly prohibited.
+10. **Autonomous Execution After Approval:** Once human confirmation is granted on the generation plan, execute the entire scaffolding and verification pipeline autonomously without prompting for redundant intermediate permissions.
+11. **Canonical API Response Entity:** All endpoints return `{ status: boolean, statusCode: number, message: string, data: T }` conforming to `APIResponseEntity<T>`.
+12. **Confirmation Step:** Compile responses into `project-spec.yaml` and require human confirmation before drafting the generation plan.
+13. **Independent Service Dependencies (No Hoisting):** In microservices, every microservice MUST maintain its own dedicated `node_modules/` directory and independent `package-lock.json`. The parent directory acts strictly as an orchestrator runner (`install:all`, `build:all`, `start:all`, `clean:all`, `reinstall:all`) without hoisting dependencies.
 
 ---
 
-## Step 0: Target Project Folder Path
-- **Question:** "What folder path should the new backend project be generated in?"
-- **Default:** `../<project-name>` (an external directory outside the standards repository).
-- **Mandatory Validation:** The path MUST NOT point to the root of the standards repository.
+## Step 0: Target Project Folder Path & Shared Utils Path
+- **Question 0A (Target Project Root):** "What folder path should the new backend project be generated in?"
+  - **Default:** `../<project-name>` (an external directory outside the standards repository).
+  - **Mandatory Validation:** The path MUST NOT point to the root of the standards repository.
+- **Question 0B (Shared Utils Path - if Microservices):** "What folder path should the shared-utils package be located in?"
+  - **Default:** `<project-root>/packages/shared-utils` (or a dedicated external directory e.g. `../shared-utils`).
+  - **Packaging Rule:** In each microservice's `package.json`, `shared-utils` will use the local folder path for initial setup (e.g. `"file:..."`) and be structured with repository metadata so it can be replaced later by a git repo URL or npm artifact.
 
 ---
 
@@ -77,6 +92,12 @@ This document is the exact protocol the AI agent MUST follow when interviewing a
 - **Options:**
   - `db-per-service` [Tier 1] *(Default)* — Each service connects to its own dedicated database instance or catalog; no cross-service database access.
   - `shared-db` [Tier 1] — Services share a physical database cluster with strictly segregated schemas/collections.
+- **Architectural Rule (if shared-db):**
+  - Database schemas, ORM entities, migrations, and the migration runner (`migration-runner.ts` supporting `migrate:status`, `migrate:run`, `migrate:generate`, `migrate:revert`) MUST reside and execute centrally inside `shared-utils`.
+  - Microservices are STRICTLY PROHIBITED from defining migrations, executing migrations at boot, or containing migration CLI scripts in their local `package.json`.
+  - The migration runner in `shared-utils` MUST support in-memory environment variable / CLI parameter injection (`DB_HOST`, `DB_PORT`, etc.) without writing temporary plaintext credential files (`temp-data-source.ts`) to disk.
+  - `shared-utils` MUST NOT contain `.env` files or hardcoded database credentials on disk.
+  - Database secrets MUST reside in each microservice's `.env` and be passed as typed parameters into the connection factory.
 - **Depends on:** Steps 1 and 3.
 
 ---
@@ -118,7 +139,7 @@ This document is the exact protocol the AI agent MUST follow when interviewing a
 ## Step 8: Shared Code Strategy (`shared-utils`)
 - **Question (if Microservices):** "How should common utilities, enums, errors, and route helpers be packaged?"
 - **Options (Microservices):**
-  - `shared-utils` [Tier 1] *(Default)* — Shared package named `shared-utils` containing enums, constants, route registrars, and error handlers. Structured so it can live as a monorepo workspace package (`packages/shared-utils`) or an independent git repository.
+  - `shared-utils` [Tier 1] *(Default)* — Shared package named `shared-utils` containing enums, constants, route registrars, and error handlers (and shared database entities/connection factory if `shared-db` is selected). Structured as an independent package. In each microservice's `package.json`, use the local folder path (e.g. `"file:..."`) for initial setup, structured with repository metadata so it can be replaced later by a git repo URL or npm artifact.
   - `git-submodule` [Tier 2] — External repository tracked via Git submodules.
   - `published-private-packages` [Tier 2] — Private npm registry package.
   - `none` [Tier 3] — No shared code *(NOT YET SUPPORTED)*.

@@ -46,12 +46,12 @@ Target project setups are decided along a strictly ordered, dependency-aware pip
 
 ## How AI Agents Interact With This Repository
 
-1. **Entry Point:** The agent begins by reading [AGENTS.md](file:///c:/Users/neel2/OneDrive/Desktop/Practise/project-setup/AGENTS.md).
-2. **Intake:** The agent runs the step-by-step interview defined in [intake/step-wise-intake.md](file:///c:/Users/neel2/OneDrive/Desktop/Practise/project-setup/intake/step-wise-intake.md) or ingests a populated [project-spec.yaml](file:///c:/Users/neel2/OneDrive/Desktop/Practise/project-setup/intake/project-spec.template.yaml).
-3. **Validation:** Ingested choices are validated against [intake/decision-tree.md](file:///c:/Users/neel2/OneDrive/Desktop/Practise/project-setup/intake/decision-tree.md) and [intake/compatibility-matrix.md](file:///c:/Users/neel2/OneDrive/Desktop/Practise/project-setup/intake/compatibility-matrix.md).
+1. **Entry Point:** The agent begins by reading [AGENTS.md](AGENTS.md).
+2. **Intake:** The agent runs the step-by-step interview defined in [intake/step-wise-intake.md](intake/step-wise-intake.md) or ingests a populated [project-spec.yaml](intake/project-spec.template.yaml).
+3. **Validation:** Ingested choices are validated against [intake/decision-tree.md](intake/decision-tree.md) and [intake/compatibility-matrix.md](intake/compatibility-matrix.md).
 4. **Selective Loading:** Using the Routing Table in `AGENTS.md`, the agent loads **only** the standards corresponding to chosen options.
 5. **Planning & Approval:** The agent outputs a structured generation plan (directory tree, dependency versions, ports, env keys) and **waits for human approval**.
-6. **External Generation:** The agent scaffolds the project into a separate directory, installs dependencies, verifies build/lint/test, audits against [checklists/conformance-checklist.md](file:///c:/Users/neel2/OneDrive/Desktop/Practise/project-setup/checklists/conformance-checklist.md), and stamps the output with `VERSION`.
+6. **External Generation:** The agent scaffolds the project into a separate directory, installs dependencies, verifies build/lint/test, audits against [checklists/conformance-checklist.md](checklists/conformance-checklist.md), and stamps the output with `VERSION`.
 
 ---
 
@@ -59,9 +59,7 @@ Target project setups are decided along a strictly ordered, dependency-aware pip
 
 ```
 project-setup/
-├── AGENTS.md                  # Canonical entry: routing table & engagement rules
-├── CLAUDE.md                  # Thin entry point for Claude Code
-├── GEMINI.md                  # Thin entry point for Gemini CLI
+├── AGENTS.md                  # Universal entry point for all AI agents: routing table & engagement rules
 ├── README.md                  # This file
 ├── CHANGELOG.md               # Version history
 ├── VERSION                    # Standards release version

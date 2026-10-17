@@ -21,18 +21,35 @@ Defines the declarative routing, functional controller dispatch, middleware chai
 
 ## 4. Contract
 
-### Declarative Route Registration
-- Every domain router MUST define routes as an array of `RouteDefinition` objects and register them via `registerRoutes(router, routes)`:
-  - Route paths and methods MUST NOT be attached imperatively with raw inline calls like `router.get('/', handler)`.
-  - HTTP methods MUST be referenced using `HTTPRequestMethodsEnumEntity` (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`).
-  - Route paths MUST use enums or constants from `shared-utils`.
+### Strict Separation of Router, Controller, and Service
+- **Router:**
+  - Exclusively responsible for declarative route definitions (`RouteDefinition[]`).
+  - Attaches route-level middlewares such as `validateData(schema)` in `middlewares`.
+  - Mounts routes using `registerRoutes(router, routes)`.
+- **Controller:**
+  - Acts solely as an HTTP transport adapter.
+  - Receives `(req, res)` wrapped in `handleRequestWithResponse`.
+  - Extracts parameters (`req.params`), query strings (`req.query`), and body payload (`req.body`).
+  - Delegates to domain service methods, passing plain TypeScript parameters or DTOs.
+  - Envelopes the service result via `createSuccessResponse(data, statusCode, message)` and returns the HTTP response.
+  - **PROHIBITION:** Controllers MUST NOT contain domain business logic, calculations, data transformations, or direct database access.
+- **Service:**
+  - Implements the pure domain business logic (e.g. `createUser(data)`).
+  - Accepts typed domain data / DTOs, NEVER Express `Request` or `Response` objects.
+  - Returns domain models or throws typed application errors (`NotFoundError`, `ValidationError`, etc.).
+  - MUST NOT invoke `.safeParse()` or `.parse()`.
 
 ### Functional Controller Request Handlers
 - Controller methods MUST NOT be procedural `(req, res, next)` blocks with manual try/catch boilerplate.
 - Controller endpoints MUST be wrapped using `handleRequestWithResponse`:
   ```typescript
-  // Wraps service execution and forwards caught errors to Express error pipeline
-  public getUser = handleRequestWithResponse((req, res) => this.userService.getUser(req, res));
+  // Dispatches request to create a user and delegates domain logic to service
+  public createUser = handleRequestWithResponse(async (req: Request, res: Response) => {
+    const user = await this.userService.createUser(req.body);
+    res.status(HttpStatusCodesEnumEntity.CREATED).json(
+      createSuccessResponse(user, HttpStatusCodesEnumEntity.CREATED, CommonMessagesEnumEntity.CREATED)
+    );
+  });
   ```
 
 ### Strict Enum-First Architecture

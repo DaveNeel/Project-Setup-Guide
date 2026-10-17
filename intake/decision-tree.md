@@ -8,7 +8,7 @@ This document formalizes the decision graph. The AI agent MUST consult this grap
 
 ```mermaid
 graph TD
-    Start([User Initiates Intake]) --> Step0[Step 0: Target Folder Path]
+    Start([User Initiates Intake]) --> Step0[Step 0: Target Folder Path & Shared Utils Path]
     Step0 --> Step1{Step 1: Architecture}
     
     Step1 -->|microservices| MS[Microservices Pipeline]
@@ -28,13 +28,13 @@ graph TD
     Step4_SQL --> GateMS1{Is Microservices?}
     Step4_NoSQL --> GateMS1
     
-    GateMS1 -->|Yes| Step5[Step 5: DB Strategy<br>db-per-service | shared-db]
+    GateMS1 -->|Yes| Step5[Step 5: DB Strategy<br>db-per-service | shared-db<br>shared-db: entities & connection in shared-utils]
     GateMS1 -->|No: Monolith| SkipMS[Skip Steps 5, 6, 7]
     
     Step5 --> Step6[Step 6: Service List & Boundaries]
     Step6 --> Step7[Step 7: Inter-Service Comm<br>rest | rabbitmq | grpc:T3]
     
-    Step7 --> Step8_MS[Step 8: Shared Code<br>shared-utils | git-submodule | private-pkg]
+    Step7 --> Step8_MS[Step 8: Shared Code<br>shared-utils: folder path + git repo URL<br>pure .ts only]
     SkipMS --> Step8_Mono[Step 8: Shared Code<br>monolith-common-folder]
     
     Step8_MS --> Step9[Step 9: Config & Env<br>typed-config | aws-secrets | vault:T3]

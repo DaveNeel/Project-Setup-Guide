@@ -1,4 +1,6 @@
-# AGENTS.md — Canonical AI Agent Instructions & Routing Table
+# AGENTS.md — Universal AI Agent Instructions & Routing Table
+
+This is the canonical, single entry point for all AI coding agents (Claude Code, Gemini CLI, Antigravity, Cursor, OpenAI, Copilot, etc.).
 
 You are an AI code generator. This repository contains architectural standards, contracts, and an intake engine. It contains **no application code**. Your job is to intake choices step-by-step and generate a new backend project in a separate directory matching these contracts.
 
@@ -6,21 +8,32 @@ You are an AI code generator. This repository contains architectural standards, 
 
 ## 1. Hard Rules of Engagement
 
-1. **Target Directory First:** Always prompt the user for the target project folder path at the start of intake. Never generate project code inside this repository.
+1. **Target Directory & Shared Utils Path:** Always prompt the user for the target project folder path at the start of intake. If microservices architecture is selected, also prompt for the `shared-utils` folder path. Never generate project code inside this repository.
 2. **Step-Wise Intake:** Execute steps in order (1 to 10). Only offer options valid for previous answers.
 3. **Never Guess Silently:** If an intake field is missing or ambiguous, ask. Never invent decisions.
-4. **Shared Code Strategy (`shared-utils`):** In microservices, common utilities MUST be isolated in `shared-utils` (structured so it can live as a monorepo workspace package or an independent git repository).
-5. **Strict Enum-First Rule:** Prohibit magic strings, hardcoded codes, and static messages across the entire codebase. Use enums for HTTP methods, status codes, response messages, environments, log levels, and error codes.
-6. **Declarative Routing & Controller Handlers:** Express projects MUST use `registerRoutes(router, routes)` with `RouteDefinition[]` and `handleRequestWithResponse((req, res) => service.method(req, res))`. Old procedural router-controller patterns are prohibited.
-7. **Single Health Probe:** Services MUST expose exactly one health check endpoint (`GET /health`) that actively verifies database connectivity, returning dynamic status.
-8. **One-Line Documentation:** Every reusable function, middleware, utility, and handler MUST include a clear 1-line comment explaining its purpose.
-9. **Basic Structure (No Test Folders):** The initial project setup scaffolds pure runnable source code (`src/`). Do NOT generate `test/` folders in the baseline scaffold.
-10. **Verify ORM Compatibility:** Check the ORM's current official documentation at generation time. Do not assume compatibility from memory.
-11. **Approval Before Writing:** Present the populated `project-spec.yaml` and generation plan. Wait for human approval before creating files.
-12. **Route-Level Zod Validation Middleware:** Zod schemas are declared at the service/module level but validated exclusively via `validateData(schema)` in the route middleware array. Service methods MUST NOT call `.safeParse()` or `.parse()`.
-13. **Standard API Response Entity (`APIResponseEntity<T>`):** All HTTP responses across the system MUST strictly adhere to the `{ status: boolean, statusCode: number, message: string, data: T }` envelope.
-14. **Verify Runnable Build:** Run `npm run build` and `npm run lint` in the target project. Fix all failures before completing.
-15. **Conformance Audit:** Evaluate output against `checklists/conformance-checklist.md` item-by-item and output the completed audit.
+4. **Shared Code Strategy (`shared-utils`) & Git Repo Path:** In microservices, common utilities MUST be isolated in `shared-utils` (structured as an independent package). In each microservice's `package.json`, specify `shared-utils` via local folder path for initial setup (e.g. `"file:..."`), structured with repository metadata so it can seamlessly transition to a git repository URL or npm artifact.
+5. **Shared Database & Centralized Migrations in `shared-utils` (Zero Migrations in Microservices):** If microservices and a single shared database (`shared-db`) are chosen:
+   - Database schemas, ORM entities, migrations, database utilities (`dbOperations`), and the migration runner (`migration-runner.ts` supporting `migrate:status`, `migrate:run`, `migrate:generate`, `migrate:revert`) MUST reside and execute centrally inside `shared-utils`.
+   - Microservices are STRICTLY PROHIBITED from defining migrations, executing migrations at boot, or containing migration CLI scripts in their local `package.json`.
+   - The migration runner in `shared-utils` MUST support in-memory environment variable / CLI parameter injection (`DB_HOST`, `DB_PORT`, etc.) without writing temporary plaintext credential files (`temp-data-source.ts`) to disk.
+   - `shared-utils` MUST NOT contain `.env` files, config loaders, or hardcoded database credentials on disk.
+   - Database secrets MUST reside in each microservice's `.env` and be passed as typed parameters into the connection factory (`createDataSource(dbConfig)`).
+6. **Strict Separation of Router, Controller, and Service:**
+   - **Router:** Declares route endpoints as `RouteDefinition[]` with route-level middleware `validateData(schema)` and registers them via `registerRoutes(router, routes)`.
+   - **Controller:** Pure HTTP dispatch adapter. Extracts parameters/body from `req`, delegates to domain service methods, envelopes service return values via `createSuccessResponse`, and returns HTTP responses via `handleRequestWithResponse`. Controllers MUST NOT contain domain business logic.
+   - **Service:** Contains pure business logic. Service methods MUST accept plain data/DTOs and return domain models. Services MUST NOT receive Express `req` or `res` objects, nor invoke `.safeParse()`.
+7. **Strict Enum-First Rule:** Prohibit magic strings, hardcoded codes, and static messages across the entire codebase. Use enums for HTTP methods, status codes, response messages, environments, log levels, and error codes.
+8. **Single Health Probe:** Services MUST expose exactly one health check endpoint (`GET /health`) that actively verifies database connectivity, returning dynamic status.
+9. **One-Line Documentation:** Every reusable function, middleware, utility, and handler MUST include a clear 1-line comment explaining its purpose.
+10. **Basic Structure (No Test Folders):** The initial project setup scaffolds pure runnable source code (`src/`). Do NOT generate `test/` folders in the baseline scaffold.
+11. **Pure TypeScript in `shared-utils` (No Map Files):** `shared-utils` MUST contain only clean `.ts` source files. Compilation map files like `.d.ts.map` and `.js.map` are strictly prohibited.
+12. **Verify ORM Compatibility:** Check the ORM's current official documentation at generation time. Do not assume compatibility from memory.
+13. **Approval Before Writing & Autonomous Execution:** Present the populated `project-spec.yaml` and generation plan. Wait for human approval before creating files. Once approved, execute the full scaffolding, installation, build, lint, and verification pipeline autonomously without prompting for redundant intermediate permissions.
+14. **Route-Level Zod Validation Middleware:** Zod schemas are declared at the service/module level but validated exclusively via `validateData(schema)` in the route middleware array. Service methods MUST NOT call `.safeParse()` or `.parse()`.
+15. **Standard API Response Entity (`APIResponseEntity<T>`):** All HTTP responses across the system MUST strictly adhere to the `{ status: boolean, statusCode: number, message: string, data: T }` envelope.
+16. **Verify Runnable Build:** Run `npm run build` and `npm run lint` in the target project. Fix all failures before completing.
+17. **Conformance Audit:** Evaluate output against `checklists/conformance-checklist.md` item-by-item and output the completed audit.
+18. **Independent Service Dependencies & Parent Orchestrator (No Hoisted Workspaces):** In microservices, every microservice MUST maintain its own dedicated `node_modules/` directory and independent `package-lock.json` file for autonomous execution and Dockerization. Hoisting dependencies to a shared root `node_modules` is prohibited. The parent repository root `package.json` acts strictly as an orchestration manifest providing lifecycle scripts (`install:all`, `build:all`, `start:all`, `clean:all`, `reinstall:all`) using `concurrently` and `rimraf` to execute commands inside each service.
 
 ---
 

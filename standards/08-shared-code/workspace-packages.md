@@ -24,7 +24,10 @@ Defines structure, packaging, and contents for `shared-utils`, establishing reus
 
 ### Package Naming & Standalone Repository Readiness
 - The shared library MUST be named `shared-utils`.
-- It MUST be structured with an independent `package.json`, `tsconfig.json`, and `src/` tree so it can be published or extracted to an independent external git repository without code changes.
+- It MUST be structured with an independent `package.json`, `package-lock.json`, `tsconfig.json`, and `src/` tree so it can be published or extracted to an independent external git repository without code changes.
+- **Microservice Dependency Specification:**
+  - For initial local development (before remote git repository publication), microservices reference `shared-utils` using the local folder path (e.g. `"file:../../shared-utils"`).
+  - Its `package.json` MUST define a `"repository"` field with Git URL metadata (`"type": "git", "url": "<git-repo-url>"`) to enable immediate transition to a git repository dependency (`git+https://...`), private registry package, or artifact.
 
 ### Mandatory Contents of `shared-utils`
 1. **Universal Enums (Strict No-String-Literal Rule):**
@@ -44,11 +47,27 @@ Defines structure, packaging, and contents for `shared-utils`, establishing reus
    - `validateData(schema)`: Route-level Zod validation middleware returning standard 400 on failure.
    - `AppError`, `NotFoundError`, `UnauthorizedError`, `ValidationError`.
    - `correlationIdMiddleware`, `createErrorHandlerMiddleware`, and `createAuthMiddleware`.
-5. **One-Line Documentation:**
+5. **Shared Database & Migration Lifecycle (when `shared-db` is selected):**
+   - All shared database schemas and ORM entities (`src/database/entities/`).
+   - Centralized migrations directory (`src/database/migrations/`).
+   - Migration runner script (`src/database/migration-runner.ts`) and migration data source (`src/database/migration-data-source.ts`).
+   - Mandatory migration scripts in `shared-utils/package.json`:
+     - `"migrate:status"`: Inspects pending vs executed migrations.
+     - `"migrate:generate"`: Compares centralized entities against DB and generates a new migration.
+     - `"migrate:run"`: Applies all pending migrations in order.
+     - `"migrate:revert"`: Rolls back the last applied migration.
+   - **In-Memory Parameter Injection:** Runner accepts connection parameters via CLI arguments (`npm run migrate:<action> -- ...`) or environment variables (`DB_HOST`, `DB_PORT`, etc.) and injects them in-memory into `process.env`. Writing temporary credential files to disk (`temp-data-source.ts`) is strictly prohibited.
+   - Parameterized runtime connection factory: `createDataSource(dbConfig: DBConfig): DataSource` in `src/database/data-source.ts`.
+   - Generic DB CRUD and transaction operations (`src/database/dbOperations.ts`).
+   - Typed DB interface: `src/interfaces/db.interface.ts` (e.g. `MSSQLConfig`).
+   - **Zero Secrets on Disk:** `shared-utils` MUST NOT contain `.env` files or hardcoded credentials. Secrets are passed into `createDataSource` by each microservice, and into `migration-runner` via CLI/env at execution time.
+6. **Pure TypeScript Baseline (No Map Files):**
+   - `shared-utils` MUST contain only pure `.ts` files. Source maps and declaration maps (`.d.ts.map`, `.js.map`) are strictly prohibited (`"sourceMap": false`, `"declarationMap": false`).
+7. **One-Line Documentation:**
    - Every function and middleware MUST include a clear 1-line explanatory comment.
 
 ### Prohibitions
-- `shared-utils` MUST NOT contain domain business logic, Mongoose models, TypeORM entities, or concrete repositories.
+- `shared-utils` MUST NOT contain domain business logic, service implementations, controller route handlers, `.env` files, or configuration secrets.
 
 ---
 
@@ -78,7 +97,8 @@ export const handleRequestWithResponse = (func: ServiceMethodWithResponse) => {
 - [ ] Enums defined for HTTP methods, status codes, common messages, environments, and log levels.
 - [ ] `registerRoutes` and `handleRequestWithResponse` exported.
 - [ ] 1-line comments on every utility function and middleware.
-- [ ] Zero domain business logic or database entities in `shared-utils`.
+- [ ] Zero domain business logic, service handlers, or secret credentials in `shared-utils`.
+- [ ] If `shared-db` is selected, all entities, migrations, and migration runner scripts reside centrally in `shared-utils`.
 
 ---
 
